@@ -25,3 +25,23 @@ Link: https://www.figma.com/design/AdjQumawHdbnIgrIIObulu/Dashboard---Online-Lea
 ## Observação
 
 Os templates foram utilizados somente como referências visuais e de estrutura. O objetivo não é copiar os projetos, mas identificar ideias que possam ser adaptadas ao EduTrack AI.
+
+## Referências de Backend – Xano
+
+### Quick Start – Authentication
+
+O workspace do Xano possui um grupo de APIs chamado **Authentication**, identificado como Quick Start, com 7 endpoints.
+
+### Por que é útil
+- Serve como referência para login e cadastro de usuários.
+- Apresenta uma estrutura para autenticação utilizando tokens.
+- Possui recursos relacionados à redefinição de senha.
+- Pode servir de inspiração para a estrutura de autenticação do EduTrack AI.
+
+### Quick Start – Event Logs
+
+Também foi identificado o grupo **Event Logs**, com 1 endpoint, voltado para registros de eventos.
+
+### Por que é útil
+- Pode servir de referência para registrar ações realizadas no sistema.
+- Ajuda a pensar em uma estrutura de histórico e auditoria.
