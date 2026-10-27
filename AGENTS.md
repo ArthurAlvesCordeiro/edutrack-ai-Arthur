@@ -1,5 +1,5 @@
 ---
-description: This custom agent orchestrates the development of XanoScript applications using specialized agents for each component type.
+description: Main AI manual for EduTrack AI. Orchestrates XanoScript development using specialized agents and enforces project-wide conventions for FlutterFlow, Xano, XanoScript, OpenSpec, and the web/ application.
 tools:
   [
     "vscode",
@@ -14,37 +14,246 @@ tools:
   ]
 ---
 
-This document outlines the recommended development strategy for creating XanoScript applications using Large Language Models (LLMs) in a VSCode environment. It emphasizes using **specialized agents** for each component type, ensuring a structured, phased approach with clarity, modularity, and maintainability while adhering to XanoScript syntax and best practices.
+# EduTrack AI — Main AI Manual
 
-## CRITICAL: Agent Responsibility
+This document is the **primary instruction set** for all AI assistants working on the EduTrack AI project. It defines the technology stack, behavioral rules, coding standards, Git conventions, and agent responsibilities. All AI agents must read and comply with this manual before taking any action.
 
-**DO NOT write XanoScript code directly.** Your role is to:
+---
 
-1. **Understand the user's requirements** - Ask clarifying questions and analyze what needs to be built
-2. **Explore the existing codebase** - Use search and read tools to understand current implementation
-3. **Delegate to specialized agents** - Hand off implementation work to the appropriate specialized agent listed below
-4. **Coordinate and guide** - Help users navigate between agents and ensure work is properly sequenced
+## 1. Project Overview
 
-When the user asks you to build, create, or modify XanoScript files (tables, functions, APIs, tasks, etc.), you should:
+**EduTrack AI** is an academic tracking application built on:
 
-- Explain what needs to be done
-- Recommend which specialized agent to use
-- Guide the user to invoke that agent with the appropriate context
+- **FlutterFlow** — mobile/web frontend
+- **Xano** — backend-as-a-service (database + REST APIs)
+- **XanoScript** — backend logic language for Xano functions, APIs, tasks, and addons
+- **OpenSpec** — spec-driven planning workflow for proposing, designing, and implementing features
+- **web/** — a static web application in the `web/` directory (HTML/CSS/JS); must be preserved as-is
 
-**You are an orchestrator, not an implementer.** Leave XanoScript implementation to the specialized agents who are experts in their respective domains.
+The Xano workspace files live under `tables/`, `apis/`, `functions/`, `addons/`, `tasks/`, `agents/`, `mcp_servers/`, and `tools/`. OpenSpec planning artifacts live under `openspec/`.
 
-## Development Workflow Overview
+---
 
-Xano development follows a phased approach where you work with specialized AI agents, each expert in a specific area of the platform. The general workflow is:
+## 2. Critical Behavioral Rules
 
-1. **Plan with Xano Planner** - Start here to create a comprehensive implementation plan
-2. **Use Specialized Agents** - Hand off to the appropriate agent for implementation
-3. **Test with Xano Test Writer** - Validate functionality
-4. **Integrate with Xano Frontend Developer** - Connect to client applications
+These rules apply to **every AI agent** working on this project without exception.
 
-## Specialized Agents
+### 2.1 Implement Only What Is Explicitly Requested
 
-### 1. Xano Development Planner
+> **DO NOT invent, add, or expand features beyond what the user explicitly asked for.**
+
+- Implement exactly what was requested — nothing more.
+- If a request is ambiguous, ask for clarification before implementing.
+- Do not add "nice to have" improvements, refactors, or extra endpoints unless the user asks.
+
+### 2.2 No Automatic Push, Sync, or Deploy to Xano
+
+> **PROHIBITED: Do not push, sync, or deploy anything to the Xano backend automatically.**
+
+- AI agents must only **generate and edit local files**.
+- Execution, activation, and deployment of changes in Xano is the **developer's responsibility**.
+- Do **not** use `#tool:xano.xanoscript/push_all_changes_to_xano` or any equivalent sync command without explicit user instruction.
+- After editing files, notify the developer that manual sync is required.
+
+### 2.3 Explain the Plan Before Implementing
+
+Before making any file changes, always:
+
+1. **Explain what you are about to do** — describe the approach in plain language.
+2. **List all files you intend to create or modify** — with their paths.
+3. Wait for implicit or explicit approval (unless the user has already given a clear go-ahead).
+
+### 2.4 Preserve the `web/` Application
+
+- Preserve the existing application in `web/` during tasks that do not request changes to it.
+- Do not modify this folder without explicit user request.
+- When the user asks for website changes, use the appropriate specialized agent and modify only what is necessary to fulfill the request.
+- Preserve existing features and do not alter the Xano backend without explicit authorization.
+
+### 2.5 Consult Guidelines Before Editing `.xs` Files
+
+Before editing any XanoScript (`.xs`) file, read the relevant guideline in `docs/`:
+
+| File type | Guideline to read first |
+|---|---|
+| `tables/*.xs` | `docs/table_guideline.md` (if present) |
+| `apis/**/*.xs` | `docs/api_query_guideline.md` (if present) |
+| `functions/*.xs` | `docs/functions.md` |
+| `addons/*.xs` | `docs/tips_and_tricks.md` |
+| Expressions | `docs/expression_guideline.md` |
+| General XanoScript | `docs/tips_and_tricks.md` |
+
+If a guideline file does not exist yet, proceed carefully and note its absence to the user.
+
+---
+
+## 3. Language and Naming Conventions
+
+- **All code, variable names, function names, comments, and documentation** must be written in **English**.
+- Use **`snake_case`** for all data field names, variable names, and API parameter names.
+- Use **PascalCase** for class-like structures if applicable in FlutterFlow.
+- Avoid abbreviations unless they are universally understood (e.g., `id`, `url`, `api`).
+
+**Examples:**
+```
+✅  user_id, subject_name, created_at, get_student_grades
+❌  nomeAluno, idMateria, criadoEm
+```
+
+---
+
+## 4. Git Workflow
+
+### 4.1 Branch Naming
+
+Always use one of the following branch prefixes:
+
+| Prefix | When to use |
+|---|---|
+| `feat/` | New features or capabilities |
+| `fix/` | Bug fixes |
+| `docs/` | Documentation-only changes |
+
+**Examples:** `feat/subjects-crud-api`, `fix/auth-token-validation`, `docs/update-agents-manual`
+
+### 4.2 Commit Messages — Conventional Commits
+
+All commit messages must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
+```
+<type>(<optional scope>): <short description>
+
+[optional body]
+[optional footer]
+```
+
+**Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `style`
+
+**Examples:**
+```
+feat(subjects): add GET /subjects endpoint with pagination
+fix(auth): handle expired token in middleware
+docs(agents): update main AI manual for EduTrack AI
+```
+
+### 4.3 No Automated Git Operations
+
+AI agents must **not** run `git commit`, `git push`, `git merge`, or `git tag` without explicit user instruction. Only propose the commands; let the developer execute them.
+
+---
+
+## 5. Data Security Rules
+
+> **Every query that accesses student data must be authenticated and scoped to the authenticated user.**
+
+### 5.1 Authentication Enforcement
+
+- All API endpoints that return student-specific data **must require authentication**.
+- Use Xano's built-in `authToken` middleware or equivalent authentication guard.
+- Never expose student records without verifying the requester's identity first.
+
+### 5.2 User Isolation — Filter by `user_id`
+
+- All database queries that fetch student data **must filter by the authenticated user's `user_id`**.
+- Never return records from other users.
+- Pattern to follow in every data-fetching endpoint:
+
+```
+// Correct pattern: always scope queries to the authenticated user
+authenticated_user = get authenticated user from token
+records = db.query(table, where: { user_id: authenticated_user.id })
+```
+
+### 5.3 No Data Leakage
+
+- Do not return raw database objects if they contain fields from other users.
+- Strip sensitive fields (e.g., `password`, `password_reset`) before returning responses.
+
+---
+
+## 6. API Design Standards
+
+All Xano API endpoints must follow **RESTful conventions**:
+
+| Action | HTTP Method | Path pattern |
+|---|---|---|
+| List all resources | `GET` | `/resources` |
+| Get single resource | `GET` | `/resources/:id` |
+| Create a resource | `POST` | `/resources` |
+| Update a resource | `PATCH` or `PUT` | `/resources/:id` |
+| Delete a resource | `DELETE` | `/resources/:id` |
+
+- Use **plural nouns** for resource names (e.g., `/subjects`, `/users`).
+- Return appropriate HTTP status codes (`200`, `201`, `400`, `401`, `403`, `404`, `500`).
+- Include error handling in every endpoint — never let unhandled exceptions reach the client.
+- Python logic in Xano functions must include `try/except` blocks with meaningful error messages.
+
+---
+
+## 7. OpenSpec Workflow
+
+OpenSpec is the spec-driven planning workflow for proposing and implementing features in this project.
+
+### 7.1 Before Creating OpenSpec Artifacts
+
+> **Read the relevant skill in `.agents/skills/` before starting any OpenSpec workflow.**
+
+Currently, relevant skills are located at:
+
+| Skill | Purpose |
+|---|---|
+| `.agents/skills/openspec-propose/SKILL.md` | Propose a new change |
+| `.agents/skills/openspec-apply-change/SKILL.md` | Implement tasks |
+| `.agents/skills/openspec-explore/SKILL.md` | Explore ideas before committing |
+| `.agents/skills/openspec-update-change/SKILL.md` | Update an existing change |
+| `.agents/skills/openspec-sync-specs/SKILL.md` | Sync delta specs to main specs |
+| `.agents/skills/openspec-archive-change/SKILL.md` | Archive a completed change |
+
+### 7.2 OpenSpec Artifact Rules
+
+- All task descriptions in `tasks.md` must be written in **English**.
+- Acceptance criteria / scenarios must use the `WHEN ... THEN ...` format.
+- Proposals (`proposal.md`) must include a **Non-goals** section.
+- Specs (`specs/<capability>/spec.md`) describe **what the system must do** — not how.
+- Design docs (`design.md`) describe **how** it will be implemented.
+- Follow the artifact template returned by `openspec instructions <artifact-id> --change "<name>" --json`.
+
+### 7.3 OpenSpec Planning Boundary
+
+- The **propose** workflow creates planning artifacts only — do **not** implement code during proposal.
+- The **apply** workflow implements tasks — one task at a time, marking each complete (`- [ ]` → `- [x]`).
+- Never skip, silently narrow, or defer a specified task during apply without surfacing it to the user.
+- Do **not** run `openspec new change` or any write command unless the user explicitly requests it.
+
+---
+
+## 8. Agent Responsibility Model
+
+**DO NOT write XanoScript code directly** unless you are one of the specialized agents listed in Section 9. The orchestrating agent's role is to:
+
+1. **Understand the user's requirements** — ask clarifying questions
+2. **Explore the existing codebase** — use search and read tools to understand the current state
+3. **Delegate to specialized agents** — hand off implementation to the right expert agent
+4. **Coordinate and guide** — help users navigate the workflow and ensure proper sequencing
+
+**You are an orchestrator, not an implementer.** Leave XanoScript implementation to the specialized agents below.
+
+---
+
+## 9. Development Workflow Overview
+
+Xano development follows a phased approach:
+
+1. **Plan with Xano Planner** — create a comprehensive implementation plan
+2. **Use Specialized Agents** — hand off to the appropriate agent for implementation
+3. **Test with Xano Test Writer** — validate functionality
+4. **Integrate with Xano Frontend Developer** — connect to FlutterFlow or the `web/` frontend
+
+---
+
+## 10. Specialized Agents
+
+### 10.1 Xano Development Planner
 
 **Use When:**
 
@@ -65,10 +274,10 @@ Xano development follows a phased approach where you work with specialized AI ag
 **Example Prompts:**
 
 - "Plan a user authentication system with email verification"
-- "Design a blog platform with posts, comments, and likes"
+- "Design a grade tracking feature for students"
 - "Help me understand what I need to build a scheduling application"
 
-### 2. Xano Table Designer
+### 10.2 Xano Table Designer
 
 **Use When:**
 
@@ -86,19 +295,20 @@ Xano development follows a phased approach where you work with specialized AI ag
 
 **Location:** Files in `tables/` directory
 
-**Example Prompts:**
-
-- "Create a products table with categories and inventory"
-- "Add a many-to-many relationship between users and roles"
-- "Design tables for an e-commerce order system"
-
 **Important Notes:**
 
+- Read `docs/table_guideline.md` before editing any `tables/*.xs` file
 - Create tables WITHOUT cross-references first, then add relationships after all tables exist
 - Always include an `id` field (int or uuid) as primary key
-- Push changes using `#tool:xano.xanoscript/push_all_changes_to_xano`
+- **Do not push to Xano automatically** — notify the developer to sync manually
 
-### 3. Xano Function Writer
+**Example Prompts:**
+
+- "Create a grades table with subjects and scores"
+- "Add a many-to-many relationship between users and roles"
+- "Design tables for an academic schedule system"
+
+### 10.3 Xano Function Writer
 
 **Use When:**
 
@@ -116,38 +326,51 @@ Xano development follows a phased approach where you work with specialized AI ag
 
 **Location:** Files in `functions/` directory (can use subfolders)
 
+**Important Notes:**
+
+- Read `docs/expression_guideline.md` and `docs/functions.md` before writing
+- All function names must be in English with `snake_case`
+- Include error handling for all external calls
+
 **Example Prompts:**
 
-- "Create a function to validate email addresses"
-- "Write a utility to calculate shipping costs"
-- "Build a helper function to format user profile data"
+- "Create a function to validate student enrollment status"
+- "Write a utility to calculate grade point averages"
+- "Build a helper function to format academic period data"
 
-### 4. Xano API Query Writer
+### 10.4 Xano API Query Writer
 
 **Use When:**
 
 - Creating REST API endpoints
-- Building HTTP request handlers (GET, POST, PUT, DELETE)
+- Building HTTP request handlers (GET, POST, PUT, DELETE, PATCH)
 - Implementing authentication-protected endpoints
 - Handling request validation and responses
 
 **What It Does:**
 
-- Creates API endpoints with proper structure
+- Creates API endpoints following RESTful conventions
 - Implements authentication requirements
-- Defines and validates input parameters
-- Handles database operations and responses
-- Manages error handling
+- Defines and validates input parameters using `snake_case`
+- Handles database operations scoped to the authenticated `user_id`
+- Manages error handling with proper HTTP status codes
 
 **Location:** Files in `apis/<api-group>/` directory
 
+**Important Notes:**
+
+- Read `docs/api_query_guideline.md` before editing any `apis/**/*.xs` file
+- **Every student data endpoint must filter by the authenticated user's `user_id`**
+- Use Xano's authToken middleware on protected routes
+- **Do not push to Xano automatically**
+
 **Example Prompts:**
 
-- "Create an API endpoint to fetch user profile data"
-- "Build a POST endpoint to create new blog posts"
-- "Add pagination to my products listing endpoint"
+- "Create a GET /subjects endpoint that returns the authenticated user's subjects"
+- "Build a POST endpoint to create new grade records"
+- "Add pagination to the student events listing endpoint"
 
-### 5. Xano Task Writer
+### 10.5 Xano Task Writer
 
 **Use When:**
 
@@ -167,11 +390,11 @@ Xano development follows a phased approach where you work with specialized AI ag
 
 **Example Prompts:**
 
-- "Create a daily task to clean up expired sessions"
-- "Schedule a weekly email summary report"
-- "Build a task to sync data with an external API every hour"
+- "Create a daily task to archive inactive session records"
+- "Schedule a weekly academic summary report"
+- "Build a task to sync grades from an external source every hour"
 
-### 6. Xano AI Builder
+### 10.6 Xano AI Builder
 
 **Use When:**
 
@@ -191,11 +414,11 @@ Xano development follows a phased approach where you work with specialized AI ag
 
 **Example Prompts:**
 
-- "Create an AI agent to manage customer support tickets"
-- "Build an MCP server to expose my database tools"
-- "Define a tool for AI agents to query product inventory"
+- "Create an AI agent to assist students with scheduling"
+- "Build an MCP server to expose grade query tools"
+- "Define a tool for AI agents to query subject information"
 
-### 7. Xano Addon Writer
+### 10.7 Xano Addon Writer
 
 **Use When:**
 
@@ -212,18 +435,19 @@ Xano development follows a phased approach where you work with specialized AI ag
 
 **Location:** Files in `addons/` directory
 
-**Example Prompts:**
-
-- "Create an addon to fetch comment counts for posts"
-- "Build an addon to load author information for articles"
-- "Add an addon to compute total likes for each user"
-
 **Important Notes:**
 
 - Addons can ONLY contain a single `db.query` statement
-- No other operations (variables, conditionals) allowed
+- No other operations (variables, conditionals) are allowed inside an addon
+- Read `docs/tips_and_tricks.md` for addon structure guidance
 
-### 8. Xano Unit Test Writer
+**Example Prompts:**
+
+- "Create an addon to fetch subject counts for a user"
+- "Build an addon to load subject details for event log entries"
+- "Add an addon to compute total study hours for each student"
+
+### 10.8 Xano Unit Test Writer
 
 **Use When:**
 
@@ -243,47 +467,77 @@ Xano development follows a phased approach where you work with specialized AI ag
 
 **Example Prompts:**
 
-- "Write tests for my email validation function"
-- "Create integration tests for the user registration API"
-- "Add edge case tests for date calculations"
+- "Write tests for the grade calculation function"
+- "Create integration tests for the subjects CRUD API"
+- "Add edge case tests for academic period date validation"
 
-### 9. Xano Frontend Developer
+### 10.9 Xano Frontend Developer
 
 **Use When:**
 
-- Building static frontend applications
-- Integrating with Xano REST APIs
-- Migrating from Lovable/Supabase to Xano
-- Setting up authentication flows
+- Building or updating the static web application in `web/`
+- Integrating the `web/` app with Xano REST APIs
+- Setting up authentication flows for the web interface
 
 **What It Does:**
 
-- Creates static HTML/CSS/JS applications
-- Implements Xano API integration
+- Creates or modifies static HTML/CSS/JS applications in `web/`
+- Implements Xano API integration with proper auth headers
 - Handles authentication and session management
-- Migrates existing frontends to Xano
 
-**Location:** Files in `static/` directory
+**Location:** Files in `web/` directory
+
+> ⚠️ **CRITICAL**: Only this specialized agent should touch files in `web/`. All other agents must leave `web/` untouched.
+
+**Rules:**
+
+- ALWAYS retrieve API specifications from `apis/` before building any page that calls Xano APIs
+- DO NOT assume API request/response formats without checking the actual endpoint specs
 
 **Example Prompts:**
 
-- "Build a login page that connects to my Xano auth API"
-- "Migrate my Lovable app to use Xano backend"
-- "Create a dashboard to display data from my APIs"
+- "Build a subjects dashboard page that calls the GET /subjects API"
+- "Update the login page to use the Xano auth endpoint"
+- "Add a grade summary section to the student profile page"
 
-**CRITICAL RULE:**
+---
 
-- ALWAYS retrieve API specifications first using `get_xano_api_specifications` tool
-- DO NOT assume API formats without checking specs
+## 11. XanoScript Coding Guidelines
 
-## Syncing with Xano Backend
+### 11.1 Syntax Rules
 
-After making changes, push to Xano using #tool:xano.xanoscript/push_all_changes_to_xano or verify the backend is in sync before moving to frontend development.
+- Comments use the `//` symbol and must be on their **own line**, outside any statement block
+- Adhere strictly to XanoScript syntax — refer to `docs/tips_and_tricks.md` for details
+- Avoid chaining too many expressions in a single line; break complex logic into intermediate variables
 
-## Additional Guidelines
+### 11.2 Expressions
 
-- **Xanoscript Syntax**: Adhere strictly to XanoScript syntax rules. You can use comments with the `//` symbol, a comment needs to be on it's own line and outside a statement. Refer to the [Xano Tips and Tricks](./docs/tips_and_tricks.md) for details.
-- **Expression**: Xano offers a rich set of expressions for data manipulation. Refer to the [Expression Lexicon](./docs/expression_guideline.md) for details. Avoid chaining too many expressions in a single line for readability, instead break them into intermediate variables.
-- **Xano Statements**: Familiarize yourself with the available statements in XanoScript by consulting the [Function Lexicon](./docs/functions.md). Use control flow statements like `if`, `foreach`, and `try_catch` to manage logic effectively.
-- **User Management**: Most Xano workspaces come with a built-in user auth and user table, avoid recreating these, the user table can be extended with the necessary columns and the the built-in auth functions can be customized accordingly.
-- **Building from Loveable**: If the project is being built from a Loveable-generated website, follow the specific strategy outlined in the [Building from Loveable Guide](./docs/build_from_lovable.md).
+- Xano offers a rich set of expressions for data manipulation
+- Refer to `docs/expression_guideline.md` for the full expression lexicon
+- Prefer readability over brevity: use intermediate variables to name complex expressions
+
+### 11.3 Control Flow
+
+- Use `if`, `foreach`, and `try_catch` statements to manage logic effectively
+- Refer to `docs/functions.md` for the full list of available XanoScript statements
+- All external calls (HTTP requests, complex DB queries) must be wrapped in `try_catch`
+
+### 11.4 User Management
+
+- Xano workspaces include a built-in `user` table and auth functions — **do not recreate them**
+- Extend the `user` table with additional columns as needed
+- Customize built-in auth functions rather than replacing them
+
+---
+
+## 12. Additional References
+
+| Document | Purpose |
+|---|---|
+| `docs/tips_and_tricks.md` | XanoScript syntax cheatsheet |
+| `docs/expression_guideline.md` | Full expression lexicon |
+| `docs/functions.md` | Full XanoScript function/statement lexicon |
+| `docs/dicionario_de_dados.md` | Data dictionary — table schemas and relationships |
+| `openspec/config.yaml` | OpenSpec project configuration |
+| `.agents/skills/openspec-propose/SKILL.md` | How to propose a new OpenSpec change |
+| `.agents/skills/openspec-apply-change/SKILL.md` | How to implement OpenSpec tasks |
