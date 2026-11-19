@@ -3,9 +3,9 @@
 
 import os
 from datetime import datetime, date
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 
-from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi import FastAPI, HTTPException, Header, Depends, Response
 from pydantic import BaseModel, Field, validator, model_validator
 
 # Import the core filtering function from the existing script.
@@ -15,7 +15,12 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from scripts.search_subjects import filter_subjects
 
+# Import the PDF generator for the new endpoint.
+from scripts.generate_performance_pdf import build_pdf
+
 app = FastAPI(title="EduTrack Hybrid Search API")
+
+
 
 # ---------------------------------------------------------------------------
 # Security – a simple shared secret passed via the X‑API‑Key header.
@@ -118,3 +123,74 @@ def search(req: SearchRequest, _: str = Depends(get_api_key)):
         ref_date=ref_dt,
     )
     return {"subjects": filtered}
+# ---------------------------------------------------------------------------
+# PDF report request model
+# ---------------------------------------------------------------------------
+class ReportRequest(BaseModel):
+    student_name: Optional[str] = None
+    name: Optional[str] = None
+    full_name: Optional[str] = None
+    display_name: Optional[str] = None
+
+    subjects: List[Dict[str, Any]] = Field(default_factory=list)
+    tasks: List[Dict[str, Any]] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_student_name(self):
+        names = [
+            self.student_name,
+            self.name,
+            self.full_name,
+            self.display_name,
+        ]
+
+        if not any(
+            isinstance(value, str) and value.strip()
+            for value in names
+        ):
+            raise ValueError("A student name is required.")
+
+        return self
+
+
+# ---------------------------------------------------------------------------
+# POST /generate-pdf endpoint
+# ---------------------------------------------------------------------------
+@app.post("/generate-pdf")
+def generate_pdf(
+    req: ReportRequest,
+    _: str = Depends(get_api_key),
+):
+    student_name = next(
+        value.strip()
+        for value in (
+            req.student_name,
+            req.name,
+            req.full_name,
+            req.display_name,
+        )
+        if isinstance(value, str) and value.strip()
+    )
+
+    payload = {
+        "student_name": student_name,
+        "subjects": req.subjects,
+        "tasks": req.tasks,
+    }
+
+    try:
+        pdf_bytes = build_pdf(payload)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="PDF generation failed.",
+        ) from exc
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition":
+                "attachment; filename=student-performance-report.pdf"
+        },
+    )
