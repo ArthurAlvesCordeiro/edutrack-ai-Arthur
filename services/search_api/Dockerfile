@@ -1,3 +1,4 @@
+
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -13,8 +14,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir -p /app/scripts && \
     useradd --create-home --shell /usr/sbin/nologin appuser
 
+# Copy the FastAPI application.
 COPY --chown=appuser:appuser services/search_api/main.py ./main.py
+
+# Copy the existing hybrid search script.
 COPY --chown=appuser:appuser scripts/search_subjects.py ./scripts/search_subjects.py
+
+# Copy the PDF generation script.
+COPY --chown=appuser:appuser scripts/generate_performance_pdf.py ./scripts/generate_performance_pdf.py
 
 # Run as an unprivileged user.
 USER appuser
